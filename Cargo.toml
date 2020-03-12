@@ -11,6 +11,14 @@ keywords = ["cli", "aws", "route53", "ddns"]
 categories = ["command-line-utilities"]
 readme = "README.md"
 
+[[bin]]
+name = "r53ddns"
+path = "src/bin/main.rs"
+
+[lib]
+name = "r53ddns"
+path = "src/r53ddns.rs"
+
 [dependencies]
 tokio = { version = "0.2", features = ["macros"] }
 reqwest = "0.10.4"
