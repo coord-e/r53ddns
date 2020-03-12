@@ -804,7 +804,7 @@ dependencies = [
 
 [[package]]
 name = "r53ddns"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "fern 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
