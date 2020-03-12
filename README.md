@@ -4,8 +4,8 @@
 [![Actions Status](https://github.com/coord-e/r53ddns/workflows/Release/badge.svg)](https://github.com/coord-e/r53ddns/actions?workflow=Release)
 [![Crates.io](https://img.shields.io/crates/v/r53ddns)](https://crates.io/crates/r53ddns)
 [![Crates.io](https://img.shields.io/crates/l/r53ddns)](https://crates.io/crates/r53ddns)
-[![Docker Cloud Automated build](https://img.shields.io/docker/cloud/automated/coorde/mkbookpdf)](https://hub.docker.com/r/coorde/mkbookpdf)
-[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/coorde/mkbookpdf)](https://hub.docker.com/r/coorde/mkbookpdf)
+[![Docker Cloud Automated build](https://img.shields.io/docker/cloud/automated/coorde/r53ddns)](https://hub.docker.com/r/coorde/r53ddns)
+[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/coorde/r53ddns)](https://hub.docker.com/r/coorde/r53ddns)
 
 `r53ddns` is a simple command-line utility to update `A` record in Route53 with current global IP address.
 
@@ -22,7 +22,7 @@ Windows 64-bit|[r53ddns-x86_64-pc-windows-msvc.exe](https://github.com/coord-e/r
 ### with Cargo
 
 ```shell
-$ cargo install mkbookpdf
+$ cargo install r53ddns
 ```
 
 ### with Docker
@@ -31,7 +31,7 @@ $ cargo install mkbookpdf
 $ alias r53ddns="docker run coorde/r53ddns"
 ```
 
-## Example configurations
+## Example configuration
 
 `r53ddns` works very well even in non-user environments. The following is an example systemd.service(5) file to execute `r53ddns`.
 
