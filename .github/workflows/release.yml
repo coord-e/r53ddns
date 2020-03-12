@@ -26,7 +26,6 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
-          draft: true
       - run: echo '${{ steps.create_release.outputs.upload_url }}' > upload_url.txt
       - uses: actions/upload-artifact@v1
         with:
