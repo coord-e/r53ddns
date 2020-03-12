@@ -1,0 +1,94 @@
+on:
+  push:
+    tags: ['*']
+
+name: Release
+
+jobs:
+  upload:
+    name: Upload to crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions-rs/cargo@v1
+        with:
+          command: publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  create_release:
+    name: Create GitHub release
+    runs-on: ubuntu-latest
+    steps:
+      - id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: true
+      - run: echo '${{ steps.create_release.outputs.upload_url }}' > upload_url.txt
+      - uses: actions/upload-artifact@v1
+        with:
+          name: upload_url
+          path: ./upload_url.txt
+  upload_release_artifacts:
+    name: Upload release artifacts
+    runs-on: ${{ matrix.os }}
+    needs: create_release
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            rust_flags: ''
+            asset_name: r53ddns-x86_64-unknown-linux-musl
+          - os: macOS-latest
+            target: x86_64-apple-darwin
+            rust_flags: ''
+            asset_name: r53ddns-x86_64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            rust_flags: -C target-feature=+crt-static
+            asset_name: r53ddns-x86_64-pc-windows-msvc
+    env:
+      RUSTFLAGS: ${{ matrix.rust_flags }}
+      MACOSX_DEPLOYMENT_TARGET: 10.7
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+          default: true
+        if: matrix.os != 'ubuntu-latest'
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features --target=${{ matrix.target }}
+        if: matrix.os != 'ubuntu-latest'
+      - run: |
+          mkdir -m 777 target
+          docker run --rm -v $(pwd):/home/rust/src ekidd/rust-musl-builder \
+            cargo build --release --all-features --target=${{ matrix.target }}
+          sudo chown $UID target/${{ matrix.target }}/release
+          sudo chown $UID target/${{ matrix.target }}/release/r53ddns
+        if: matrix.os == 'ubuntu-latest'
+      - run: mv target/${{ matrix.target }}/release/r53ddns ${{ matrix.asset_name }}
+        if: matrix.os != 'windows-latest'
+      - run: move target\${{ matrix.target }}\release\r53ddns.exe ${{ matrix.asset_name }}
+        if: matrix.os == 'windows-latest'
+      - uses: actions/download-artifact@v1
+        with:
+          name: upload_url
+      - id: get_upload_url
+        run: echo "::set-output name=upload_url::$(cat upload_url/upload_url.txt)"
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_upload_url.outputs.upload_url }}
+          asset_content_type: application/octet-stream
+          asset_name: ${{ matrix.asset_name }}
+          asset_path: ./${{ matrix.asset_name }}
