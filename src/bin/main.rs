@@ -25,6 +25,12 @@ struct Opt {
 
     #[structopt(short, long)]
     ip: Option<String>,
+
+    #[structopt(short, long)]
+    wait: bool,
+
+    #[structopt(long, default_value = "5")]
+    wait_interval: u64,
 }
 
 async fn run() -> Result<()> {
@@ -52,12 +58,14 @@ async fn run() -> Result<()> {
     })
     .await?;
 
-    action::wait(WaitInput {
-        route53: &route53,
-        change_id,
-        interval: 5.into(),
-    })
-    .await?;
+    if opt.wait {
+        action::wait(WaitInput {
+            route53: &route53,
+            change_id,
+            interval: opt.wait_interval.into(),
+        })
+        .await?;
+    }
 
     Ok(())
 }
