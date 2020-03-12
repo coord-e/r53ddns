@@ -3,6 +3,7 @@ use r53ddns::action::{UpdateInput, WaitInput};
 use r53ddns::base::Result;
 use r53ddns::domain::{AWSCredential, Route53};
 
+use log::error;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -31,10 +32,19 @@ struct Opt {
 
     #[structopt(long, default_value = "5")]
     wait_interval: u64,
+
+    #[structopt(short, long, default_value = "Warn")]
+    log_level: log::LevelFilter,
 }
 
 async fn run() -> Result<()> {
     let opt = Opt::from_args();
+
+    fern::Dispatch::new()
+        .level(opt.log_level)
+        .chain(std::io::stderr())
+        .apply()
+        .unwrap();
 
     let credential = if let (Some(key), Some(secret)) = (opt.key, opt.secret) {
         Some(AWSCredential::new(key, secret))
@@ -75,7 +85,7 @@ async fn main() {
     std::process::exit(match run().await {
         Ok(()) => 0,
         Err(e) => {
-            eprintln!("r53ddns: {}", e);
+            error!("r53ddns: {}", e);
             1
         }
     });
