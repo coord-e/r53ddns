@@ -50,7 +50,7 @@ jobs:
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             rust_flags: -C target-feature=+crt-static
-            asset_name: r53ddns-x86_64-pc-windows-msvc
+            asset_name: r53ddns-x86_64-pc-windows-msvc.exe
     env:
       RUSTFLAGS: ${{ matrix.rust_flags }}
       MACOSX_DEPLOYMENT_TARGET: 10.7
