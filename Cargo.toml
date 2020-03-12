@@ -1,0 +1,30 @@
+[package]
+name = "r53ddns"
+version = "1.0.0"
+authors = ["coord.e <me@coord-e.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+description = "a command-line utility to update A record in Route53 with current global IP address"
+homepage = "https://github.com/coord-e/r53ddns"
+repository = "https://github.com/coord-e/r53ddns"
+keywords = ["cli", "aws", "route53", "ddns"]
+categories = ["command-line-utilities"]
+readme = "README.md"
+
+[[bin]]
+name = "r53ddns"
+path = "src/bin/main.rs"
+
+[lib]
+name = "r53ddns"
+path = "src/r53ddns.rs"
+
+[dependencies]
+tokio = { version = "0.2", features = ["macros"] }
+reqwest = "0.10.4"
+rusoto_core = "0.43.0-beta.1"
+rusoto_credential = "0.43.0-beta.1"
+rusoto_route53 = "0.43.0-beta.1"
+structopt = "0.3.11"
+log = "0.4.8"
+fern = "0.6.0"
