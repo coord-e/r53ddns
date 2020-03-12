@@ -13,7 +13,7 @@ pub struct UpdateInput<'route53> {
     pub ttl: TTL,
 }
 
-pub async fn update<'route53>(input: UpdateInput<'route53>) -> Result<ChangeID> {
+pub async fn update(input: UpdateInput<'_>) -> Result<ChangeID> {
     let record_type = match input.ip.kind() {
         IPV4 => RecordType::A,
         IPV6 => RecordType::AAAA,

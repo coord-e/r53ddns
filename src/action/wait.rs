@@ -11,7 +11,7 @@ pub struct WaitInput<'route53> {
     pub interval: WaitInterval,
 }
 
-pub async fn wait<'route53>(input: WaitInput<'route53>) -> Result<()> {
+pub async fn wait(input: WaitInput<'_>) -> Result<()> {
     use tokio::time::delay_for;
 
     let interval = input.interval.into();

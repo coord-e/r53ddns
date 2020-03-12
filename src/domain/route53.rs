@@ -73,7 +73,7 @@ impl Route53 {
         use rusoto_route53::{GetChangeRequest, GetChangeResponse, Route53};
 
         let request = GetChangeRequest {
-            id: change_id.clone().to_string(),
+            id: change_id.to_string(),
         };
         let GetChangeResponse { change_info } = self.client().get_change(request).await?;
         change_info.status.parse()
