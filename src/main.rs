@@ -3,6 +3,7 @@ use tokio::time::delay_for;
 use rusoto_core::{Region, HttpClient};
 use rusoto_credential::StaticProvider;
 use rusoto_route53::{Route53, Route53Client, ChangeResourceRecordSetsRequest, ChangeResourceRecordSetsResponse, ChangeBatch, Change, ResourceRecordSet, ResourceRecord, GetChangeRequest, GetChangeResponse};
+use structopt::StructOpt;
 
 async fn get_ip() -> Result<String, reqwest::Error> {
     let mut content = reqwest::get("http://checkip.amazonaws.com").await?.text().await?;
@@ -18,19 +19,47 @@ async fn check_change_status(client: &Route53Client, id: &str) -> Result<String,
     Ok(change_info.status)
 }
 
+#[derive(StructOpt)]
+#[structopt(name = "r53update")]
+struct Opt {
+    #[structopt(short, long, requires = "secret")]
+    key: Option<String>,
+
+    #[structopt(short, long, requires = "key")]
+    secret: Option<String>,
+
+    #[structopt(short, long, default_value = "300")]
+    ttl: i64,
+
+    #[structopt(short, long)]
+    zone: String,
+
+    #[structopt(short, long)]
+    name: String,
+
+    #[structopt(short, long)]
+    ip: Option<String>,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let access_key_id = "<key id>".to_string();
-    let secret_access_key = "<secret key>".to_string();
-    let hosted_zone_id = "<id>".to_string();
-    let value = get_ip().await?;
-    let name = "<name>".to_string();
-    let ttl = 300;
+    let opt = Opt::from_args();
 
-    eprintln!("IP: {}", value);
+    let hosted_zone_id = opt.zone;
+    let value = if let Some(ip) = opt.ip { ip } else {
+        get_ip().await?
+    };
+    let name = opt.name;
+    let ttl = opt.ttl;
 
-    let dispatcher = HttpClient::new()?;
-    let provider = StaticProvider::new_minimal(access_key_id, secret_access_key);
+    let client =
+        if let (Some(key), Some(secret)) = (opt.key, opt.secret) {
+            let provider = StaticProvider::new_minimal(key, secret);
+            let dispatcher = HttpClient::new()?;
+            Route53Client::new_with(dispatcher, provider, Region::UsEast1)
+        } else {
+            Route53Client::new(Region::UsEast1)
+        };
 
     let resource_record = ResourceRecord { value };
     let resource_records = Some(vec![resource_record]);
@@ -39,7 +68,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let change_batch = ChangeBatch { changes: vec![change], comment: None };
     let request = ChangeResourceRecordSetsRequest { change_batch, hosted_zone_id };
 
-    let client = Route53Client::new_with(dispatcher, provider, Region::UsEast1);
     match client.change_resource_record_sets(request).await {
         Ok(ChangeResourceRecordSetsResponse { change_info }) => {
             let id = change_info.id.trim_start_matches("/change/").to_string();
